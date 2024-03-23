@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Page</title>
+  <style>
+    /* Your CSS styles here */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #f0f0f0;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .left {
+      text-align: left;
+    }
+
+    .middle {
+      text-align: center;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .info-box {
+      background-color: #ddd;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 20px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+    }
+
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left">
+      <div class="info-box">
+        <h2 id="location">Surathkal</h2>
+        <p id="weather">Loading...</p>
+      </div>
+    </div>
+    <div class="middle">
+      <h2 id="name">Name</h2>
+      <h3 id = "year"> year student at NITK Surathkal</h3>
+      <p id="linkedin">Linkedin: <a href="#">Loading...</a></p>
+      <p id="phoneNumber">Phone Number: Loading...</p>
+      <p id="email">Email to contact: Loading...</p>
+    </div>
+    <div class="right">
+      <div class="info-box">
+        <h3 id="date">Loading...</h3>
+      </div>
+    </div>
+  </header>
+  <main id="recipes">
+    <!-- Recipes will be dynamically added here -->
+  </main>
+  <button onclick="loadMoreRecipes()">Load 3 more</button>
+
+  <script>
+    if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(position => {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+
+    fetchWeather(latitude, longitude);
+  }, error => {
+    console.error('Error getting geolocation:', error);
+  });
+} else {
+  console.error('Geolocation is not supported by this browser.');
+}
+
+fetch('http://localhost:8000/details.json')
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('name').textContent = `Name: ${data.name}`;
+    document.getElementById('year').textContent = `${data.year} year student at NITK Surathkal`;
+    document.getElementById('name').textContent = data.name;
+    document.getElementById('linkedin').innerHTML = `Linkedin: <a href="${data.linkedin}">${data.linkedin}</a>`;
+    document.getElementById('phoneNumber').textContent = `Phone Number: ${data.phoneNumber}`;
+    document.getElementById('email').textContent = `Email to contact: ${data.email}`;
+
+  })
+  .catch(error => console.error('Error fetching details:', error));
+
+
+function fetchWeather(latitude, longitude) {
+  const apiKey = 'cb1486ff9bfc93a4a8725388ca4b335d';
+
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`)
+    .then(response => response.json())
+    .then(data => {
+      const temperature = data.main.temp;
+      document.getElementById('weather').textContent = `Weather: ${temperature}°C`;
+    })
+    .catch(error => console.error('Error fetching weather:', error));
+}
+
+function updateDate() {
+  const currentDate = new Date();
+  const day = currentDate.getDate().toString().padStart(2, '0');
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+  const year = currentDate.getFullYear();
+  const formattedDate = `${day}-${month}-${year}`;
+  document.getElementById('date').textContent = `Date: ${formattedDate}`;
+}
+
+
+
+    async function fetchRecipes() {
+      try {
+        const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
+        const data = await response.json();
+        const recipes = data.meals.slice(0, 3); // Take only the first 3 recipes
+        const recipesContainer = document.getElementById('recipes');
+        recipes.forEach(recipe => {
+          const section = document.createElement('section');
+          section.innerHTML = `
+            <h2>${recipe.strMeal}</h2>
+            <p>${recipe.strInstructions}</p>
+          `;
+          recipesContainer.appendChild(section);
+        });
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+      }
+    }
+    async function displayRecipes() {
+      const recipesContainer = document.getElementById('recipesContainer');
+      recipesContainer.innerHTML = ''; // Clear previous recipes
+
+      const recipes = await fetchRecipes();
+      recipes.forEach(recipe => {
+        const section = document.createElement('section');
+        section.innerHTML = `
+          <h2>${recipe.strMeal}</h2>
+          <p>${recipe.strInstructions}</p>
+        `;
+        recipesContainer.appendChild(section);
+      });
+    }
+
+    // Function to load more recipes
+    async function loadMoreRecipes() {
+      for (let i = 0; i < 3; i++) {
+        fetchRecipes();
+      }
+    }
+
+    
+
+
+    // Call functions to fetch weather and recipes
+    fetch();
+    fetchWeather();
+    updateDate();
+    fetchRecipes();
+    fetchRecipes();
+    fetchRecipes();
+  </script>
+</body>
+</html>
